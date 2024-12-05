@@ -1,5 +1,21 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 
+@Schema()
+export class Location {
+
+    @Prop({ type: String, enum: ['Point'] })
+    type: string;
+
+    @Prop({ index: '2dsphere' })
+    coordinates: Number[];
+
+    formattedAddress: string;
+    city: string;
+    state: string;
+    zipcode: string;
+    country: string;
+}
+
 export enum Category {
     FAST_FOOD = 'Fast Food',
     CAFE = 'Cafe',
@@ -11,26 +27,28 @@ export enum Category {
 export class Resturant {
 
     @Prop()
-    name: string
+    name: string;
 
     @Prop()
-    description: string
+    description: string;
 
     @Prop()
-    email: string
+    email: string;
 
     @Prop()
-    phoneNo: number
+    phoneNo: number;
 
     @Prop()
-    address: string
+    address: string;
 
     @Prop()
-    category: Category
+    category: Category;
 
     @Prop()
-    images?: object[]
+    images?: object[];
 
+    @Prop({ type: Object, ref: 'Location'})
+    location?: Location;
 }
 
 export const ResturantSchema = SchemaFactory.createForClass(Resturant);
