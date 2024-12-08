@@ -1,5 +1,8 @@
 const nodeGeoCoder = require('node-geocoder');
+import { S3 } from "aws-sdk";
 import { Location } from "../resturants/schemas/resturant.schema";
+import { Body } from "@nestjs/common";
+import { resolve } from "path";
 
 export default class APIFeatures {
     static async getResturantLocation(address) {
@@ -33,4 +36,71 @@ export default class APIFeatures {
             
         };
     };
+
+    // Upload images
+    static async upload(files) {
+        return new Promise((resolve, reject) => {
+
+            const s3 = new S3 ({
+                accessKeyId: process.env.COLUDINARY_API_KEY,
+                secretAccessKey: process.env.COLUDINARY_API_SECRET,
+            });
+
+            let images = [];
+
+            files.forEach(async (file) => {
+                const splitFile = file.originalname.split('.');
+                const random = Date.now();
+
+                const fileName = `${splitFile[0]}_${random}.${splitFile[1]}`;
+
+                const params = {
+                    Bucket: `${process.env.COLUDINARY_CLOUD_NAME}/nestjsResturantAPI`,
+                    Key: fileName,
+                    Body: file.buffer,
+                };
+
+                const uploadResponse = await s3.upload(params).promise();
+
+                images.push(uploadResponse);
+
+                if(images.length === files.length) {
+                    resolve(images);
+                }
+            });
+        });
+    }
+
+    // Delete images
+    static async deleteImages(images) {
+        const s3 = new S3 ({
+            accessKeyId: process.env.COLUDINARY_API_KEY,
+            secretAccessKey: process.env.COLUDINARY_API_SECRET,
+        });
+
+        let imagesKeys = images.map((image) => {
+            return {
+                Key: image.Key
+            }
+        });
+
+        const params = {
+            Bucket: `${process.env.COLUDINARY_CLOUD_NAME}`,
+            Delete: {
+                Objects: imagesKeys,
+                Quiet: false,
+            }
+        };
+
+        return new Promise((resolve, reject) => {
+            s3.deleteObjects(params, function(err, data) {
+                if(err) {
+                    console.log(err);
+                    reject(false)
+                } else {
+                    resolve(true)
+                }
+            });
+        });
+    }
 }

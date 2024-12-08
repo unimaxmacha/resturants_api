@@ -58,13 +58,19 @@ export class ResturantsController {
         @Param('id')
         id: string
     ): Promise<{ deleted: Boolean }> {
-        await this.resturantsService.findById(id);
+        const resturant = await this.resturantsService.findById(id);
 
-        const resturant = this.resturantsService.deleteById(id);
+        const isDeleted = await this.resturantsService.deleteImages(resturant.images);
 
-        if(resturant) {
+        if(isDeleted) {
+            this.resturantsService.deleteById(id);
+
             return {
                 deleted: true,
+            };
+        } else {
+            return {
+                deleted: false,
             };
         }
     }
@@ -75,9 +81,12 @@ export class ResturantsController {
         @Param('id') id : string,
         @UploadedFiles() files: Array<Express.Multer.File>
     ) {
-        console.log(id);
-        console.log(files);
-        
-    }
+        // console.log(id);
+        // console.log(files);
 
+        await this.resturantsService.findById(id);
+
+        const res = await this.resturantsService.uploadImages(id, files);
+        return res;
+    }
 }

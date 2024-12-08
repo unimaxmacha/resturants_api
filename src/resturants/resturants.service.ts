@@ -77,4 +77,30 @@ export class ResturantsService {
     async deleteById(id: string): Promise<Resturant> {
         return await this.resturantModel.findByIdAndDelete(id);
     }
+
+    // Upload Images => PUT /resturants/upload/:id
+    async uploadImages(id, files) {
+        const images = await APIFeatures.upload(files);
+        
+        const resturant = await this.resturantModel.findByIdAndUpdate(
+            id, 
+            {
+            images: images as Object[]
+            }, 
+            {
+                new: true,
+                runValidators: true,
+            },
+        );
+
+        return resturant;
+    }
+
+    async deleteImages(images) {
+        
+        if(images.length === 0) return true;
+
+        const res = await APIFeatures.deleteImages(images);
+        return res;
+    }
 }
