@@ -3,6 +3,7 @@ import { S3 } from "aws-sdk";
 import { Location } from "../resturants/schemas/resturant.schema";
 import { Body } from "@nestjs/common";
 import { resolve } from "path";
+import { v2 as cloudinary } from 'cloudinary';
 
 export default class APIFeatures {
     static async getResturantLocation(address) {
@@ -37,70 +38,44 @@ export default class APIFeatures {
         };
     };
 
-    // Upload images
-    static async upload(files) {
-        return new Promise((resolve, reject) => {
-
-            const s3 = new S3 ({
-                accessKeyId: process.env.COLUDINARY_API_KEY,
-                secretAccessKey: process.env.COLUDINARY_API_SECRET,
-            });
-
-            let images = [];
-
-            files.forEach(async (file) => {
-                const splitFile = file.originalname.split('.');
-                const random = Date.now();
-
-                const fileName = `${splitFile[0]}_${random}.${splitFile[1]}`;
-
-                const params = {
-                    Bucket: `${process.env.COLUDINARY_CLOUD_NAME}/nestjsResturantAPI`,
-                    Key: fileName,
-                    Body: file.buffer,
-                };
-
-                const uploadResponse = await s3.upload(params).promise();
-
-                images.push(uploadResponse);
-
-                if(images.length === files.length) {
-                    resolve(images);
-                }
-            });
+    // Initialize Cloudinary
+    static {
+        cloudinary.config({
+           cloud_name: process.env.COLUDINARY_CLOUD_NAME,
+           accessKeyId: process.env.COLUDINARY_API_KEY,
+           secretAccessKey: process.env.COLUDINARY_API_SECRET,
         });
     }
 
-    // Delete images
-    static async deleteImages(images) {
-        const s3 = new S3 ({
-            accessKeyId: process.env.COLUDINARY_API_KEY,
-            secretAccessKey: process.env.COLUDINARY_API_SECRET,
-        });
+    // Upload images to Cloudinary
+    static async upload(files) {
+        const images = [];
 
-        let imagesKeys = images.map((image) => {
-            return {
-                Key: image.Key
-            }
-        });
-
-        const params = {
-            Bucket: `${process.env.COLUDINARY_CLOUD_NAME}`,
-            Delete: {
-                Objects: imagesKeys,
-                Quiet: false,
-            }
-        };
-
-        return new Promise((resolve, reject) => {
-            s3.deleteObjects(params, function(err, data) {
-                if(err) {
-                    console.log(err);
-                    reject(false)
-                } else {
-                    resolve(true)
-                }
+        for (const file of files) {
+            const uploadResponse = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream (
+                    { resource_type: 'auto' },
+                    (error, result) => {
+                        if (error) {
+                            return reject (error);
+                        }
+                        resolve(result);
+                    }
+                );
+                stream.end(file.buffer);
             });
-        });
+            images.push(uploadResponse);
+        }
+        return images;
+    }
+
+    // Delete images from Cloudinary
+    static async deleteImages(images) {
+        if (images.length === 0) return true;
+
+        const publicIds = images.map(image => image.public_id);
+
+        const result = await cloudinary.api.delete_resources(publicIds);
+        return result;
     }
 }
