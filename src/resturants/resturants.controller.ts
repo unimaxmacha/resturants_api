@@ -8,6 +8,7 @@ import {
     Query,
     UseInterceptors,
     UploadedFiles,
+    BadRequestException,
 } from '@nestjs/common';
 import { Query as ExpressQuery } from 'express-serve-static-core';
 import { ResturantsService } from './resturants.service';
@@ -76,17 +77,18 @@ export class ResturantsController {
     }
 
     @Put('upload/:id')
-    @UseInterceptors(FilesInterceptor('files'))
+    @UseInterceptors(FilesInterceptor('files')) // 'files' must match the key in the form-data
     async uploadFiles(
         @Param('id') id : string,
         @UploadedFiles() files: Array<Express.Multer.File>
     ) {
-        // console.log(id);
-        // console.log(files);
+        if (!Array.isArray(files) || files.length === 0) {
+            throw new BadRequestException('No files were uploaded.');
+        }
 
         await this.resturantsService.findById(id);
 
         const res = await this.resturantsService.uploadImages(id, files);
         return res;
-    }
+    }//
 }

@@ -1,8 +1,5 @@
 const nodeGeoCoder = require('node-geocoder');
-import { S3 } from "aws-sdk";
 import { Location } from "../resturants/schemas/resturant.schema";
-import { Body } from "@nestjs/common";
-import { resolve } from "path";
 import { v2 as cloudinary } from 'cloudinary';
 
 export default class APIFeatures {
@@ -39,22 +36,28 @@ export default class APIFeatures {
     };
 
     // Initialize Cloudinary
-    static {
+    static configureCloudinary() {
         cloudinary.config({
            cloud_name: process.env.COLUDINARY_CLOUD_NAME,
-           accessKeyId: process.env.COLUDINARY_API_KEY,
-           secretAccessKey: process.env.COLUDINARY_API_SECRET,
+           api_key: process.env.COLUDINARY_API_KEY,
+           api_secret: process.env.COLUDINARY_API_SECRET,
         });
     }
 
     // Upload images to Cloudinary
     static async upload(files) {
-        const images = [];
+        if (!Array.isArray(files) || files.length === 0) {
+            throw new Error('No files provided or files is not iterable.');
+        }
 
+        const images = [];
         for (const file of files) {
             const uploadResponse = await new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream (
-                    { resource_type: 'auto' },
+                    { 
+                        resource_type: 'auto', // Determine resource type automatically
+                        folder: 'nestjsResturantAPI' // Upload to the "restaurant" folder
+                    },
                     (error, result) => {
                         if (error) {
                             return reject (error);
