@@ -8,6 +8,7 @@ import {
     Query,
     UseInterceptors,
     UploadedFiles,
+    UseGuards,
 } from '@nestjs/common';
 import { Query as ExpressQuery } from 'express-serve-static-core';
 import { ResturantsService } from './resturants.service';
@@ -15,12 +16,14 @@ import { Resturant } from './schemas/resturant.schema';
 import { CreateResturantDto } from './dto/create-resturant.dto';
 import { UpdateResturantDto } from './dto/update-resturant.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('resturants')
 export class ResturantsController {
     constructor(private resturantsService: ResturantsService) {}
 
     @Get()
+    @UseGuards(AuthGuard())
     async getAllResturants(@Query() query: ExpressQuery): Promise<Resturant[]> {
         return this.resturantsService.findAll(query);
     }
