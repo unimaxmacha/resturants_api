@@ -1,0 +1,16 @@
+curl --location 'http://localhost:3000/auth/signup' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "Sundar",
+    "email": "sundar1@gmail.com",
+    "password": "12345678"
+}'
+
+
+curl --location --request GET 'http://localhost:3000/auth/login' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NTY4NmYyYzFkMjU2ODEyNmQ3YzBkOSIsIm5hbWUiOiJTdW5kYXIiLCJpYXQiOjE3MzM3MzAwNjEsImV4cCI6MTczMzgxNjQ2MX0.W1vk5Jf092sL8z1B16dRWpfaBzoPzpgCeZPTg_XndMI' \
+--data-raw '{
+    "email": "sundar1@gmail.com",
+    "password": "12345678"
+}'
