@@ -69,15 +69,25 @@ export class ResturantsController {
         }
     }
 
-    @Put('upload/:id')
+    @Post('upload/:id')
     @UseInterceptors(FilesInterceptor('files'))
     async uploadFiles(
-        @Param('id') id : string,
+        @Param('id') id: string,
         @UploadedFiles() files: Array<Express.Multer.File>
     ) {
-        console.log(id);
-        console.log(files);
-        
-    }
+        console.log('Processing file upload...');
+        if (!files || files.length === 0) {
+        return {
+            message: 'No files uploaded',
+        };
+        }
 
+        const uploadedFiles = await this.resturantsService.uploadFiles(files);
+
+        console.log('Uploaded Files:', uploadedFiles);
+
+        return {
+        uploadedFiles,
+        };
+    }
 }

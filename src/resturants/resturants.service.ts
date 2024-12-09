@@ -77,4 +77,21 @@ export class ResturantsService {
     async deleteById(id: string): Promise<Resturant> {
         return await this.resturantModel.findByIdAndDelete(id);
     }
+
+    // Upload files
+    async uploadFiles (files: Express.Multer.File[]):Promise<any[]> {
+        try {
+            const uploadedFiles = [];
+            for (const file of files) {
+                console.log('Processing file:', file); // Debugging
+                const uploadedFile = await APIFeatures.uploadFileToCloudinary(file.buffer);
+                uploadedFiles.push(uploadedFile);
+            }
+            console.log('All uploaded files:', uploadedFiles);
+            return uploadedFiles;
+        } catch (error) {
+            console.error('Error uploading files:', error);
+            throw new BadRequestException('Error uploading files');
+        }
+    }
 }
