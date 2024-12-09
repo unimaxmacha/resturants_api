@@ -2,6 +2,7 @@ import { v2 as cloudinary } from 'cloudinary';
 const nodeGeoCoder = require('node-geocoder');
 import { Location } from "../resturants/schemas/resturant.schema";
 import { BadRequestException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 export default class APIFeatures {
     static async getResturantLocation(address) {
@@ -72,5 +73,18 @@ export default class APIFeatures {
             console.error('Unexpected error while uploading to Cloudinary:', error);
             throw new BadRequestException('Unexpected upload error');
         }
+    }
+
+    static async assignJwtToken(
+        userId: string,
+        userName: string,
+        jwtService: JwtService
+    ): Promise<string> {
+
+        const payload = { id: userId, name: userName }
+
+        const token = await jwtService.sign(payload)
+
+        return token;
     }
 }
