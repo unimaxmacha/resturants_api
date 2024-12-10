@@ -1,4 +1,5 @@
 const nodeGeoCoder = require('node-geocoder');
+import { JwtService } from "@nestjs/jwt";
 import { Location } from "../resturants/schemas/resturant.schema";
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -80,5 +81,17 @@ export default class APIFeatures {
 
         const result = await cloudinary.api.delete_resources(publicIds);
         return result;
+    }
+
+    static async assignJwtToken(
+        userId: string,
+        jwtService: JwtService
+    ): Promise<string> {
+
+        const payload = { id: userId };
+
+        const token = await jwtService.sign(payload);
+
+        return token;
     }
 }

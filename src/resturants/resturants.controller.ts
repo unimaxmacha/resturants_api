@@ -90,5 +90,5 @@ export class ResturantsController {
 
         const res = await this.resturantsService.uploadImages(id, files);
         return res;
-    }//
+    }
 }
