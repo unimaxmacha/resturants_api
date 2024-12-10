@@ -20,6 +20,8 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../auth/schemas/user.schema';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('resturants')
 export class ResturantsController {
@@ -33,7 +35,8 @@ export class ResturantsController {
     }
 
     @Post()
-    @UseGuards(AuthGuard())
+    @UseGuards(AuthGuard(), RolesGuard)
+    @Roles('admin')
     async createResturant(
         @Body()
         resturant: CreateResturantDto,
@@ -51,6 +54,7 @@ export class ResturantsController {
     }
 
     @Put(':id')
+    @UseGuards(AuthGuard())
     async updateResturant(
         @Param('id') 
         id: string,
@@ -63,6 +67,7 @@ export class ResturantsController {
     }
 
     @Delete(':id')
+    @UseGuards(AuthGuard())
     async deleteResturant(
         @Param('id')
         id: string
@@ -85,6 +90,7 @@ export class ResturantsController {
     }
 
     @Put('upload/:id')
+    @UseGuards(AuthGuard())
     @UseInterceptors(FilesInterceptor('files')) // 'files' must match the key in the form-data
     async uploadFiles(
         @Param('id') id : string,
