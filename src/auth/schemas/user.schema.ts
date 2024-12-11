@@ -6,7 +6,9 @@ export enum UserRoles {
     USER = 'user'
 }
 
-@Schema()
+@Schema({
+    timestamps: true
+})
 export class User extends Document {
     _id: string; // Ensuring _id is always a string.
     

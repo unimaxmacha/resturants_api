@@ -25,7 +25,9 @@ export enum Category {
 }
 
 
-@Schema()
+@Schema({
+    timestamps: true
+})
 export class Resturant {
 
     @Prop()
