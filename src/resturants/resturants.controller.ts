@@ -10,6 +10,7 @@ import {
     UploadedFiles,
     BadRequestException,
     UseGuards,
+    ForbiddenException,
 } from '@nestjs/common';
 import { Query as ExpressQuery } from 'express-serve-static-core';
 import { ResturantsService } from './resturants.service';
@@ -36,7 +37,7 @@ export class ResturantsController {
 
     @Post()
     @UseGuards(AuthGuard(), RolesGuard)
-    @Roles('admin')
+    @Roles('admin', 'user')
     async createResturant(
         @Body()
         resturant: CreateResturantDto,
@@ -60,8 +61,13 @@ export class ResturantsController {
         id: string,
         @Body()
         resturant: UpdateResturantDto,
+        @CurrentUser() user: User,
     ): Promise<Resturant> {
-        await this.resturantsService.findById(id);
+        const res = await this.resturantsService.findById(id);
+
+        if (res.user.toString() !== user._id.toString()) {
+            throw new ForbiddenException('You cannot update this resturant.')
+        }
 
         return this.resturantsService.updateById(id, resturant);
     }
@@ -70,9 +76,14 @@ export class ResturantsController {
     @UseGuards(AuthGuard())
     async deleteResturant(
         @Param('id')
-        id: string
+        id: string,
+        @CurrentUser() user: User,
     ): Promise<{ deleted: Boolean }> {
         const resturant = await this.resturantsService.findById(id);
+
+        if (resturant.user.toString() !== user._id.toString()) {
+            throw new ForbiddenException('You cannot delete this resturant.')
+        }
 
         const isDeleted = await this.resturantsService.deleteImages(resturant.images);
 
